@@ -79,13 +79,13 @@ docker-compose up --build
 Inicie o servidor FastAPI:
 
 ```bash
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8001
 ```
 
 ### Documentação da API
 
-- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
-- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+- Swagger UI: [http://localhost:8001/docs](http://localhost:8001/docs)
+- ReDoc: [http://localhost:8001/redoc](http://localhost:8001/redoc)
 
 ### Endpoints Principais
 
