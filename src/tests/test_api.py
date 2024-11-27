@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timezone
 from sqlalchemy.orm import declarative_base
 import uuid
+from src.main import app
 
 # Adiciona o diretório 'src' ao caminho do sistema para importar módulos
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
