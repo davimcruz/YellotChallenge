@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://simpleadmin:admin123@4.228.63.134:5432/simplepostgre01
+      - JWT_SECRET=your_secret_key
+      - ENVIRONMENT=development
+
+  db:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=simpleadmin
+      - POSTGRES_PASSWORD=admin123@
+      - POSTGRES_DB=simplepostgre01
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
