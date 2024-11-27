@@ -1,13 +1,15 @@
-version: '3.8'
-
+version: "3.8"
 services:
   api:
     build: .
+    container_name: yellot_api
+    network_mode: bridge
     ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
+      - "0.0.0.0:8001:8001"
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
       - SECRET_KEY=${SECRET_KEY}
-      - ENVIRONMENT=development

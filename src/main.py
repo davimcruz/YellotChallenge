@@ -1,20 +1,28 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.routes import router
-from src.database.connection import engine
-from src.database.models import Base
-from contextlib import asynccontextmanager
+from src.database.connection import engine, Base
+import logging
 
-# Cria uma instância do FastAPI com configurações básicas
+logger = logging.getLogger(__name__)
+
+# Cria as tabelas no primeiro start da API
+logger.info("Iniciando criação das tabelas no banco de dados...")
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Tabelas criadas com sucesso!")
+except Exception as e:
+    logger.error(f"Erro ao criar tabelas: {str(e)}")
+    raise
+
+# Config básica da API
 app = FastAPI(
     title="Chat API - YellotMob",
-    description="Desafio Chat API YellotMob",
+    description="Chat API com websocket e JWT",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
 )
 
-# Configura o middleware CORS para permitir requisições de qualquer origem
+# CORS - permitindo todas as origens por enquanto
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,12 +31,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define o ciclo de vida do aplicativo para gerenciar recursos
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Cria todas as tabelas no banco de dados
-    Base.metadata.create_all(bind=engine)
-    yield
+# Inclui as rotas com o prefixo correto e com descrição pra tratamento de erros
+app.include_router(
+    router,
+    prefix="/api/v1",
+    tags=["users"],
+    responses={
+        400: {"description": "Requisição inválida"},
+        401: {"description": "Não autorizado"},
+        404: {"description": "Recurso não encontrado"},
+        500: {"description": "Erro interno do servidor"}
+    }
+)
 
-# Inclui as rotas definidas no roteador
-app.include_router(router)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)

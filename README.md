@@ -2,16 +2,16 @@
 
 ## Descrição
 
-Este projeto é uma API de chat desenvolvida como parte do desafio YellotMob. A API permite a criação de usuários, autenticação, listagem de usuários e uma solução completa de chat via websocket.
+Este projeto é uma API de chat desenvolvida como parte do desafio YellotMob.
 
 ## Estrutura do Projeto
 
 - **src/**: Contém o código-fonte da aplicação.
+
   - **api/**: Define as rotas da API.
   - **services/**: Contém a lógica de negócios e serviços.
   - **database/**: Configuração e modelos do banco de dados.
   - **domain/**: Modelos de domínio e DTOs.
-  - **infrastructure/**: Implementações de infraestrutura, como repositórios.
 
 - **tests/**: Contém testes automatizados para a aplicação.
 
@@ -44,23 +44,54 @@ Este projeto é uma API de chat desenvolvida como parte do desafio YellotMob. A 
    pip install -r requirements.txt
    ```
 
-4. Configure o arquivo `.env` com suas credenciais de banco de dados e o secret key para JWT:
-
+4. Configure o arquivo `.env` com suas credenciais:
    ```plaintext
-   DATABASE_URL="sua_url_do_banco_de_dados"
-   SECRET_KEY="sua_chave_secreta"
+   DB_USER=seu_usuario
+   DB_PASSWORD=sua_senha
+   DB_HOST=seu_host
+   DB_PORT=5432
+   DB_NAME=nome_do_banco
+   SECRET_KEY=sua_secret_key
    ```
+
+### Teste de Conexão
+
+Antes de iniciar a API, é importante verificar se a conexão com o seu banco está funcionando:
+
+```bash
+# Execute o teste de conexão
+python src/tests/test_connection.py
+
+# Se aparecer "Conexão estabelecida com sucesso", pode prosseguir
+# Caso contrário, verifique suas configurações no .env
+```
 
 ## Uso
 
-### Executando a Aplicação
+### Executando com Docker
 
-Inicie o servidor FastAPI:
 ```bash
-uvicorn src.main:app --reload
+docker-compose up --build
 ```
 
-Acesse a documentação interativa da API em [http://localhost:8000/docs](http://localhost:8000/docs).
+### Executando Localmente
+
+Inicie o servidor FastAPI:
+
+```bash
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Documentação da API
+
+- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+### Endpoints Principais
+
+- `POST /api/v1/users/` - Criar novo usuário
+- `POST /api/v1/login/` - Autenticar usuário
+- `GET /api/v1/users/` - Listar usuários
 
 ### Testes
 
@@ -69,4 +100,3 @@ Execute os testes automatizados:
 ```bash
 pytest
 ```
-

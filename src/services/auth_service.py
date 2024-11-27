@@ -7,15 +7,14 @@ from uuid import UUID
 import os
 from dotenv import load_dotenv
 
-# Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
 
 # Configurações do JWT
-SECRET_KEY = os.getenv("SECRET_KEY")  # Obtém a chave secreta do .env
+SECRET_KEY = os.getenv("SECRET_KEY") 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Configura o esquema de autenticação OAuth2
+# Configura o schema de autenticação OAuth2 (tokenUrl é o endpoint pra login)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/login")
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

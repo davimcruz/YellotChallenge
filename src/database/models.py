@@ -1,16 +1,14 @@
-from sqlalchemy import Column, String, DateTime
-from sqlalchemy.dialects.postgresql import UUID
-from datetime import datetime, timezone
-import uuid
+from sqlalchemy import Column, Integer, String, DateTime
 from src.database.connection import Base
+import datetime
 
-# Define o modelo de usuário
+# Model base dos usuários
 class UserModel(Base):
     __tablename__ = "users"
 
-    # Define as colunas da tabela do db
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    username = Column(String, unique=True, index=True)
-    email = Column(String, unique=True, index=True)
+    # Índices nas colunas mais acessadas
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    email = Column(String, unique=True, index=True)  # Email único 
+    username = Column(String, index=True)
     password_hash = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc)) 
+    created_at = Column(DateTime, default=datetime.datetime.utcnow) 

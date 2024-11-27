@@ -1,7 +1,6 @@
 from pydantic import BaseModel, EmailStr
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
-from uuid import UUID, uuid4
 
 # Modelo de usuário base
 class UserBase(BaseModel):
@@ -14,13 +13,25 @@ class UserCreate(UserBase):
 
 # Modelo de usuário com ID e data de criação
 class User(UserBase):
-    id: UUID = uuid4()
-    created_at: datetime = datetime.now(timezone.utc)
+    id: int
+    created_at: datetime
 
-    model_config = {
-        'from_attributes': True
-    }
+    class Config:
+        from_attributes = True
 
 # Hash da senha do user diretamente no banco de dados
 class UserInDB(User):
     password_hash: str 
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "token_type": "bearer"
+            }
+        }
+    }

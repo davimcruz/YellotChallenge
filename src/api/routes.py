@@ -1,94 +1,76 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from src.database.connection import get_db
 from src.domain.models import UserCreate, User
 from src.services.user_service import UserService
-from src.database.connection import get_db
-from src.services.auth_service import get_current_user
+from fastapi.security import OAuth2PasswordRequestForm
 
-router = APIRouter(prefix="/api/v1")
+# Cria o router 
+router = APIRouter()
 
-# Rota para criar um novo usuário
-@router.post(
-    "/users/",
+# Define as rotas a serem utilizadas juntamente com as respostas e descrições para o swagger
+@router.post("/users/", 
     response_model=User,
-    tags=["Users"],
-    summary="Cria um novo usuário",
-    description="Cria um novo usuário no sistema com os dados fornecidos.",
+    summary="Criar novo usuário",
+    description="Cria um novo usuário com username, email e senha",
     responses={
-        200: {"description": "Usuário criado com sucesso."},
-        400: {"description": "Email já registrado."},
-        500: {"description": "Erro ao criar usuário."}
-    }
-)
-async def create_user(
-    user: UserCreate = Body(
-        ...,
-        examples={
-            "example1": {
-                "summary": "Exemplo de criação de usuário",
-                "description": "Um exemplo de como criar um novo usuário.",
-                "value": {
-                    "username": "newuser",
-                    "email": "newuser@example.com",
-                    "password": "password123"
+        200: {
+            "description": "Usuário criado com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "username": "exemplo",
+                        "email": "exemplo@email.com",
+                        "created_at": "2024-01-01T00:00:00"
+                    }
                 }
             }
         }
-    ),
-    db: Session = Depends(get_db)
-) -> User:
-    """
-    Cria um novo usuário.
-
-    - **username**: Nome de usuário único
-    - **email**: Endereço de email único
-    - **password**: Senha do usuário
-    """
+    }
+)
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return UserService.create_user(db, user)
 
-# Rota para listar todos os usuários (protegida)
-@router.get(
-    "/users/",
-    response_model=List[User],
-    tags=["Users"],
-    summary="Lista todos os usuários",
-    description="Retorna uma lista de todos os usuários cadastrados no sistema.",
+@router.get("/users/",
+    response_model=list[User],
+    summary="Listar usuários",
+    description="Lista todos os usuários cadastrados no sistema",
     responses={
-        200: {"description": "Lista de usuários retornada com sucesso."},
-        401: {"description": "Token inválido ou não fornecido."}
+        200: {
+            "description": "Lista de usuários retornada com sucesso",
+            "content": {
+                "application/json": {
+                    "example": [{
+                        "id": 1,
+                        "username": "exemplo",
+                        "email": "exemplo@email.com",
+                        "created_at": "2024-01-01T00:00:00"
+                    }]
+                }
+            }
+        }
     }
 )
-async def list_users(
-    db: Session = Depends(get_db)
-) -> List[User]:
-    """
-    Lista todos os usuários cadastrados.
-
-    Retorna uma lista de objetos de usuário.
-    """
+async def list_users(db: Session = Depends(get_db)):
     return UserService.get_users(db)
 
-# Rota para login
-@router.post(
-    "/login/",
-    tags=["Auth"],
-    summary="Realiza login",
-    description="Autentica o usuário e retorna um token de acesso.",
+@router.post("/login/",
+    summary="Autenticar usuário",
+    description="Autentica um usuário e retorna um token JWT",
     responses={
-        200: {"description": "Login realizado com sucesso."},
-        401: {"description": "Credenciais inválidas."}
+        200: {
+            "description": "Login bem-sucedido",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "eyJhbGciOiJIUzI1...",
+                        "token_type": "bearer"
+                    }
+                }
+            }
+        }
     }
 )
-async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-):
-    """
-    Realiza login no sistema.
-
-    - **username**: Email do usuário
-    - **password**: Senha do usuário
-    """
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     return UserService.login_user(db, form_data.username, form_data.password) 
