@@ -54,6 +54,19 @@ Este projeto é uma API de chat desenvolvida como parte do desafio YellotMob.
    SECRET_KEY=sua_secret_key
    ```
 
+### Banco de Dados
+
+O sistema utiliza SQLAlchemy como ORM e as tabelas são criadas automaticamente na primeira execução da aplicação. Não será necessário executar migrações manualmente.
+
+### Docker
+
+Se optar por usar Docker (um dos requisitos não funcionais do desafio), observe que pode ser necessário ajustar:
+- Portas expostas no container
+- Network
+- Variáveis de ambiente
+
+Mantenha as mesmas variáveis do arquivo `.env` para desenvolvimento local ao configurar o ambiente Docker.
+
 ### Teste de Conexão
 
 Antes de iniciar a API, é importante verificar se a conexão com o seu banco está funcionando:
@@ -93,9 +106,14 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8001
 - `POST /api/v1/login/` - Autenticar usuário
 - `GET /api/v1/users/` - Listar usuários
 
-### Testes
+### Testes e CI
 
-Execute os testes automatizados:
+O projeto utiliza GitHub Actions para Integração Contínua (CI). A cada push ou pull request:
+- Testes automatizados são executados
+- A cobertura de código é verificada
+- Os resultados são disponibilizados na aba Actions do GitHub
+
+Para executar os testes localmente:
 
 ```bash
 pytest
