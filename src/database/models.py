@@ -11,7 +11,11 @@ class UserModel(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     password = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    
+    # Adicionar relacionamentos
+    sent_messages = relationship("ChatMessage", back_populates="sender")
+    rooms_as_user1 = relationship("ChatRoom", foreign_keys="ChatRoom.user1_id", back_populates="user1")
+    rooms_as_user2 = relationship("ChatRoom", foreign_keys="ChatRoom.user2_id", back_populates="user2")
 
 class ChatRoom(Base):
     __tablename__ = "chat_rooms"
@@ -19,11 +23,11 @@ class ChatRoom(Base):
     id = Column(Integer, primary_key=True, index=True)
     user1_id = Column(Integer, ForeignKey("users.id"))
     user2_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     
-    # Relacionamentos
-    user1 = relationship("UserModel", foreign_keys=[user1_id])
-    user2 = relationship("UserModel", foreign_keys=[user2_id])
+    # Adicionar relacionamentos
+    user1 = relationship("UserModel", foreign_keys=[user1_id], back_populates="rooms_as_user1")
+    user2 = relationship("UserModel", foreign_keys=[user2_id], back_populates="rooms_as_user2")
     messages = relationship("ChatMessage", back_populates="room")
 
 class ChatMessage(Base):
@@ -31,10 +35,10 @@ class ChatMessage(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String)
-    room_id = Column(Integer, ForeignKey("chat_rooms.id"))
     sender_id = Column(Integer, ForeignKey("users.id"))
+    room_id = Column(Integer, ForeignKey("chat_rooms.id"))
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     
-    # Relacionamentos
+    # Adicionar relacionamentos
+    sender = relationship("UserModel", back_populates="sent_messages")
     room = relationship("ChatRoom", back_populates="messages")
-    sender = relationship("UserModel")
