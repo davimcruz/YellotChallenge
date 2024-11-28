@@ -2,18 +2,27 @@
 
 ## Descrição
 
-Este projeto é uma API de chat desenvolvida como parte do desafio YellotMob.
+Este projeto é uma API de chat em tempo real desenvolvida como parte do desafio YellotMob, utilizando FastAPI, WebSockets e autenticação JWT.
 
 ## Estrutura do Projeto
 
 - **src/**: Contém o código-fonte da aplicação.
 
-  - **api/**: Define as rotas da API.
-  - **services/**: Contém a lógica de negócios e serviços.
+  - **api/**: Define as rotas da API (auth e chat).
+  - **services/**: Contém a lógica de negócios, serviços e gerenciamento de WebSocket.
   - **database/**: Configuração e modelos do banco de dados.
   - **domain/**: Modelos de domínio e DTOs.
 
-- **tests/**: Contém testes automatizados para a aplicação.
+- **tests/**: Contém testes automatizados para autenticação e chat.
+
+## Funcionalidades Principais
+
+- Autenticação JWT
+- Criação e gestão de usuários
+- Chat em tempo real via WebSocket
+- Salas de chat privadas (2 usuários por sala)
+- Persistência de mensagens
+- Testes automatizados
 
 ## Configuração
 
@@ -21,99 +30,118 @@ Este projeto é uma API de chat desenvolvida como parte do desafio YellotMob.
 
 - Python 3.12.5
 - PostgreSQL
+- Ambiente virtual Python
 
 ### Instalação
 
 1. Clone o repositório:
 
-   ```bash
-   git clone https://github.com/davimcruz/YellotChallenge.git
-   ```
+```bash
+git clone https://github.com/davimcruz/YellotChallenge.git
+```
 
 2. Crie e ative um ambiente virtual:
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # No Windows use `venv\Scripts\activate`
-   ```
+```bash
+python -m venv venv
+source venv/bin/activate
+```
 
 3. Instale as dependências:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Configure o arquivo `.env` com suas credenciais:
-   ```plaintext
-   DB_USER=seu_usuario
-   DB_PASSWORD=sua_senha
-   DB_HOST=seu_host
-   DB_PORT=5432
-   DB_NAME=nome_do_banco
-   SECRET_KEY=sua_secret_key
-   ```
-
-### Banco de Dados
-
-O sistema utiliza SQLAlchemy como ORM e as tabelas são criadas automaticamente na primeira execução da aplicação. Não será necessário executar migrações manualmente.
-
-### Docker
-
-Se optar por usar Docker (um dos requisitos não funcionais do desafio), observe que pode ser necessário ajustar:
-- Portas expostas no container
-- Network
-- Variáveis de ambiente
-
-Mantenha as mesmas variáveis do arquivo `.env` para desenvolvimento local ao configurar o ambiente Docker.
-
-### Teste de Conexão
-
-Antes de iniciar a API, é importante verificar se a conexão com o seu banco está funcionando:
-
 ```bash
-# Execute o teste de conexão
-python src/tests/test_connection.py
-
-# Se aparecer "Conexão estabelecida com sucesso", pode prosseguir
-# Caso contrário, verifique suas configurações no .env
+pip install -r requirements.txt
 ```
 
-## Uso
+4. Configure o arquivo `.env`:
 
-### Executando com Docker
-
-```bash
-docker-compose up --build
+```plaintext
+DB_USER=seu_usuario
+DB_PASSWORD=sua_senha
+DB_HOST=seu_host
+DB_PORT=5432
+DB_NAME=nome_do_banco
+SECRET_KEY=secret_key
 ```
 
-### Executando Localmente
+## Endpoints da API
 
-Inicie o servidor FastAPI:
+### Autenticação
+
+- `POST /api/v1/users/` - Criar novo usuário
+- `POST /api/v1/users/login` - Autenticar usuário e receber token JWT
+
+### Chat
+
+- `POST /api/v1/chat/rooms/` - Criar nova sala de chat
+- `GET /api/v1/chat/rooms/` - Listar salas do usuário
+- `WebSocket /api/v1/chat/ws/{room_id}` - Conectar ao chat em tempo real
+
+## Uso do Chat
+
+1. Criar usuários:
 
 ```bash
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8001
+curl -X POST http://localhost:8001/api/v1/users/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "user1", "email": "user1@example.com", "password": "password123"}'
 ```
 
-### Documentação da API
+2. Fazer login e obter token:
+
+```bash
+curl -X POST http://localhost:8001/api/v1/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user1@example.com", "password": "password123"}'
+```
+
+3. Criar sala de chat:
+
+```bash
+curl -X POST http://localhost:8001/api/v1/chat/rooms/ \
+  -H "Authorization: Bearer {seu_token}" \
+  -H "Content-Type: application/json" \
+  -d '{"user2_id": 2}'
+```
+
+4. Conectar ao WebSocket:
+
+```javascript
+const ws = new WebSocket(
+  "ws://localhost:8001/api/v1/chat/ws/{room_id}?token={seu_token}"
+)
+```
+
+## Testes
+
+O projeto inclui testes automatizados para todas as funcionalidades:
+
+- Testes de autenticação
+- Testes de criação de usuários
+- Testes de salas de chat
+- Testes de WebSocket
+
+Execute os testes com:
+
+```bash
+pytest -v
+```
+
+Para testes específicos:
+
+```bash
+pytest tests/test_auth.py -v  # Testar a autenticação
+pytest tests/test_chat.py -v  # Testar funções de chat
+```
+
+## Documentação da API
 
 - Swagger UI: [http://localhost:8001/docs](http://localhost:8001/docs)
 - ReDoc: [http://localhost:8001/redoc](http://localhost:8001/redoc)
 
-### Endpoints Principais
+## Segurança
 
-- `POST /api/v1/users/` - Criar novo usuário
-- `POST /api/v1/login/` - Autenticar usuário
-- `GET /api/v1/users/` - Listar usuários
-
-### Testes e CI
-
-O projeto utiliza GitHub Actions para Integração Contínua (CI). A cada push ou pull request:
-- Testes automatizados são executados
-- A cobertura de código é verificada
-- Os resultados são disponibilizados na aba Actions do GitHub
-
-Para executar os testes localmente:
-
-```bash
-pytest
-```
+- Tokens JWT para autenticação
+- Senhas hasheadas com bcrypt
+- Validação de usuários nas salas de chat
+- Proteção contra conexões WebSocket não autorizadas

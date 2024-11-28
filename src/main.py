@@ -1,28 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.routes import router
-from src.database.connection import engine, Base
-import logging
+from src.api.auth_routes import router as auth_router
+from src.api.chat_routes import router as chat_router
+from src.database.connection import engine
+from src.database.models import Base
 
-logger = logging.getLogger(__name__)
-
-# Cria as tabelas no primeiro start da API
-logger.info("Iniciando criação das tabelas no banco de dados...")
-try:
-    Base.metadata.create_all(bind=engine)
-    logger.info("Tabelas criadas com sucesso!")
-except Exception as e:
-    logger.error(f"Erro ao criar tabelas: {str(e)}")
-    raise
-
-# Config básica da API
 app = FastAPI(
-    title="Chat API - YellotMob",
-    description="Chat API com websocket e JWT",
-    version="1.0.0",
+    title="Chat API",
+    description="API de chat com autenticação JWT",
+    version="1.0.0"
 )
 
-# CORS - permitindo todas as origens por enquanto
+# Criar tabelas no startup
+@app.on_event("startup")
+async def startup():
+    # Criar todas as tabelas definidas
+    Base.metadata.create_all(bind=engine)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,19 +26,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclui as rotas com o prefixo correto e com descrição pra tratamento de erros
-app.include_router(
-    router,
-    prefix="/api/v1",
-    tags=["users"],
-    responses={
-        400: {"description": "Requisição inválida"},
-        401: {"description": "Não autorizado"},
-        404: {"description": "Recurso não encontrado"},
-        500: {"description": "Erro interno do servidor"}
-    }
-)
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
+# Rotas
+app.include_router(auth_router, prefix="/api/v1", tags=["Auth"])
+app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chat"])

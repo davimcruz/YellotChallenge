@@ -1,33 +1,40 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+from datetime import datetime, UTC
 from src.database.connection import Base
-import datetime
+from sqlalchemy.sql import func
 
-# Model base dos usuários
 class UserModel(Base):
     __tablename__ = "users"
     
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    email = Column(String, unique=True, index=True)  # Email único 
-    username = Column(String, index=True)
-    password_hash = Column(String)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow) 
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
-    # Relacionamentos para mensagens enviadas/recebidas
-    sent_messages = relationship("ChatMessage", foreign_keys="ChatMessage.sender_id", back_populates="sender")
-    received_messages = relationship("ChatMessage", foreign_keys="ChatMessage.receiver_id", back_populates="receiver")
+class ChatRoom(Base):
+    __tablename__ = "chat_rooms"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user1_id = Column(Integer, ForeignKey("users.id"))
+    user2_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relacionamentos
+    user1 = relationship("UserModel", foreign_keys=[user1_id])
+    user2 = relationship("UserModel", foreign_keys=[user2_id])
+    messages = relationship("ChatMessage", back_populates="room")
 
-# Mensagens do chat
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
     
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String)
-    sender_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
-    receiver_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    read_at = Column(DateTime, nullable=True)  # Para marcar quando a mensagem foi lida
+    room_id = Column(Integer, ForeignKey("chat_rooms.id"))
+    sender_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     
     # Relacionamentos
-    sender = relationship("UserModel", foreign_keys=[sender_id], back_populates="sent_messages")
-    receiver = relationship("UserModel", foreign_keys=[receiver_id], back_populates="received_messages")
+    room = relationship("ChatRoom", back_populates="messages")
+    sender = relationship("UserModel")
