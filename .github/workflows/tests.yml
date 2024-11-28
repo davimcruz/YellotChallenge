@@ -27,6 +27,7 @@ jobs:
     - name: Executar testes
       env:
         TESTING: "true"
+        SECRET_KEY: "test_secret_key_for_ci"
       run: |
         pytest -v --cov=src --cov-report=xml
     
