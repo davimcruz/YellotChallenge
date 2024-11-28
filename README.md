@@ -27,8 +27,7 @@ Este projeto é uma API de chat desenvolvida como parte do desafio YellotMob.
 1. Clone o repositório:
 
    ```bash
-   git clone https://github.com/seu-usuario/seu-repositorio.git
-   cd seu-repositorio
+   git clone https://github.com/davimcruz/YellotChallenge.git
    ```
 
 2. Crie e ative um ambiente virtual:
