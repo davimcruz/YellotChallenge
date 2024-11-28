@@ -21,7 +21,7 @@ jobs:
     - name: Instalar dependências
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-asyncio httpx sqlalchemy
+        pip install pytest pytest-asyncio httpx sqlalchemy pytest-cov
         pip install -r requirements.txt
     
     - name: Executar testes
