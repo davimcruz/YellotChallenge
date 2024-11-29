@@ -4,6 +4,8 @@
 
 Este projeto é uma API de chat em tempo real desenvolvida como parte do desafio YellotMob, utilizando FastAPI, WebSockets e autenticação JWT. O sistema permite comunicação em tempo real entre dois usuários através de salas de chat privadas de dois usuários.
 
+Importante: Projeto baseado em testes. Há um CI rodando por trás no GitHub Actions para garantir a qualidade do código baseado em testes automatizados.
+
 ## Estrutura do Projeto
 
 - **src/**: Contém o código-fonte da aplicação.
