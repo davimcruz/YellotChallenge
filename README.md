@@ -6,6 +6,22 @@ Este projeto é uma API de chat em tempo real desenvolvida como parte do desafio
 
 Importante: Projeto baseado em testes. Há um CI rodando por trás no GitHub Actions para garantir a qualidade do código baseado em testes automatizados.
 
+## API em Produção
+
+A API está disponível para testes em produção através do domínio:
+```
+https://api.davimachado.cloud
+```
+
+Você pode acessar a documentação interativa em:
+- Swagger UI: `https://api.davimachado.cloud/docs`
+- ReDoc: `https://api.davimachado.cloud/redoc`
+
+Para testar o WebSocket em produção, use o protocolo `wss://`:
+```
+wss://api.davimachado.cloud/api/v1/chat/ws/{room_id}?token={seu_token}
+```
+
 ## Estrutura do Projeto
 
 - **src/**: Contém o código-fonte da aplicação.
@@ -98,11 +114,6 @@ const user2Id = 6 // ID do segundo usuário
 - `POST /api/v1/chat/rooms/`: Criar/obter sala
 - `GET /api/v1/chat/rooms/{room_id}/messages`: Histórico de mensagens
 - `WebSocket /api/v1/chat/ws/{room_id}`: Conexão WebSocket
-
-## Documentação da API
-
-- Swagger UI: `http://localhost:8001/docs`
-- ReDoc: `http://localhost:8001/redoc`
 
 ## Segurança
 
