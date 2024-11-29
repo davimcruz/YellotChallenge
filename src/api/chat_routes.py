@@ -7,11 +7,14 @@ from src.services.websocket_manager import manager
 from pydantic import BaseModel
 import logging
 import json
+from typing import List
+from src.domain.models import Message
+from datetime import datetime
+from src.database.models import UserModel
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-# Adicione este schema
 class RoomCreate(BaseModel):
     user2_id: int
 
@@ -26,6 +29,21 @@ async def create_chat_room(
         current_user = await get_current_user(token)
         user1_id = int(current_user["id"])
         
+        # Verificar se os usuários existem de fato no banco
+        user2 = db.query(UserModel).filter(UserModel.id == room.user2_id).first()
+        if not user2:
+            raise HTTPException(status_code=404, detail="Usuário 2 não encontrado")
+        
+        # Verificar se a sala já existe
+        existing_room = ChatService.get_existing_room(db, user1_id, room.user2_id)
+        if existing_room:
+            return {
+                "id": existing_room.id,
+                "user1_id": existing_room.user1_id,
+                "user2_id": existing_room.user2_id
+            }
+        
+        # Criar nova sala
         room = ChatService.create_room(db, user1_id, room.user2_id)
         
         return {
@@ -43,6 +61,8 @@ async def websocket_endpoint(
     room_id: int,
     token: str = None
 ):
+    # Chama o websocket para comunicação em tempo real em uma sala de chat
+
     if not token:
         await websocket.close(code=1008)
         return
@@ -61,6 +81,7 @@ async def websocket_endpoint(
                     data = await websocket.receive_text()
                     message = json.loads(data)
                     
+                    # Cria a mensagem e salva no banco de dados
                     chat_message = ChatService.create_message(
                         db=db,
                         room_id=room_id,
@@ -68,6 +89,7 @@ async def websocket_endpoint(
                         content=message.get("content", "")
                     )
                     
+                    # Envia a mensagem para todos os usuários na sala, exceto o remetente
                     await manager.broadcast(
                         {
                             "id": chat_message.id,
@@ -81,14 +103,14 @@ async def websocket_endpoint(
                         user_id
                     )
             except Exception as e:
-                logger.error(f"Error in websocket loop: {e}")
+                logger.error(f"Erro no loop do websocket: {e}")
             finally:
                 manager.disconnect(room_id, user_id)
         finally:
             db.close()
             
     except Exception as e:
-        logger.error(f"Error in websocket connection: {e}")
+        logger.error(f"Erro na conexão websocket: {e}")
         await websocket.close(code=1008)
 
 @router.get("/rooms/", status_code=200)
@@ -106,3 +128,15 @@ async def get_user_rooms(
     except Exception as e:
         logger.error(f"Erro ao listar salas: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+@router.get("/rooms/{room_id}/messages", response_model=List[Message])
+async def get_messages(room_id: int, db: Session = Depends(get_db)):
+    messages = ChatService.get_messages_by_room(db, room_id)
+    response = []
+    for message in messages:
+        sender = db.query(UserModel).filter(UserModel.id == message.sender_id).first()
+        response.append({
+            "content": message.content,
+            "sender_username": sender.username,
+            "created_at": message.created_at
+        })
+    return response

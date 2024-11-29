@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from src.database.models import ChatRoom, ChatMessage, UserModel
 from src.domain.schemas import ChatRoomCreate
+from src.domain.models import Message
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 class ChatService:
     @staticmethod
     def get_room(db: Session, room_id: int, user_id: int) -> ChatRoom:
+        # Tenta encontrar a sala pelo ID e verifica se o usuário pertence a ela
         try:
             logger.info(f"Buscando sala {room_id} para usuário {user_id}")
             room = db.query(ChatRoom).filter(ChatRoom.id == room_id).first()
@@ -36,42 +38,34 @@ class ChatService:
 
     @staticmethod
     def create_room(db: Session, user1_id: int, user2_id: int) -> ChatRoom:
-        try:
-            # Verificar sala existente
-            existing_room = (
-                db.query(ChatRoom)
-                .filter(
-                    ((ChatRoom.user1_id == user1_id) & (ChatRoom.user2_id == user2_id)) |
-                    ((ChatRoom.user1_id == user2_id) & (ChatRoom.user2_id == user1_id))
-                )
-                .first()
-            )
-            
-            if existing_room:
-                return existing_room
-            
-            room = ChatRoom(
-                user1_id=user1_id,
-                user2_id=user2_id
-            )
-            
-            db.add(room)
-            db.commit()
-            db.refresh(room)
-            return room
-            
-        except Exception as e:
-            db.rollback()
-            raise e
+        # Cria uma nova sala de chat entre dois usuários, se ambos existirem
+        user1 = db.query(UserModel).filter(UserModel.id == user1_id).first()
+        user2 = db.query(UserModel).filter(UserModel.id == user2_id).first()
+        if not user1 or not user2:
+            raise HTTPException(status_code=404, detail="Um ou ambos os usuários não foram encontrados")
+
+        # Verifica se a sala já existe antes de criar uma nova
+        existing_room = ChatService.get_existing_room(db, user1_id, user2_id)
+        if existing_room:
+            return existing_room
+
+        # Cria a sala e salva no banco de dados
+        room = ChatRoom(user1_id=user1_id, user2_id=user2_id)
+        db.add(room)
+        db.commit()
+        db.refresh(room)
+        return room
 
     @staticmethod
     def create_message(db: Session, room_id: int, user_id: int, content: str) -> ChatMessage:
+        # Cria uma nova mensagem em uma sala, se o usuário tiver acesso
         try:
             logger.info(f"Criando mensagem na sala {room_id} pelo usuário {user_id}")
             
-            # Primeiro verifica se o usuário tem acesso à sala
+            # Verifica se o usuário tem acesso à sala
             room = ChatService.get_room(db, room_id, user_id)
             
+            # Cria a mensagem e salva no banco de dados
             message = ChatMessage(
                 content=content,
                 sender_id=user_id,
@@ -95,10 +89,12 @@ class ChatService:
 
     @staticmethod
     def get_room_messages(db: Session, room_id: int, user_id: int):
+        # Busca todas as mensagens de uma sala, se o usuário tiver acesso
         try:
             logger.info(f"Buscando mensagens da sala {room_id}")
             room = ChatService.get_room(db, room_id, user_id)
             
+            # Retorna as mensagens ordenadas pela data de criação
             messages = (
                 db.query(ChatMessage)
                 .filter(ChatMessage.room_id == room_id)
@@ -114,6 +110,24 @@ class ChatService:
 
     @staticmethod
     def get_user_rooms(db: Session, user_id: int):
+        # Retorna todas as salas em que o usuário está
         return db.query(ChatRoom).filter(
             (ChatRoom.user1_id == user_id) | (ChatRoom.user2_id == user_id)
         ).all()
+
+    @staticmethod
+    def get_messages_by_room(db: Session, room_id: int):
+        # Retorna todas as mensagens de uma sala, ordenadas pela data de criação
+        return db.query(ChatMessage).filter(ChatMessage.room_id == room_id).order_by(ChatMessage.created_at.desc()).all()
+
+    @staticmethod
+    def get_existing_room(db: Session, user1_id: int, user2_id: int) -> ChatRoom:
+        # Verifica se já existe uma sala entre dois usuários
+        return (
+            db.query(ChatRoom)
+            .filter(
+                ((ChatRoom.user1_id == user1_id) & (ChatRoom.user2_id == user2_id)) |
+                ((ChatRoom.user1_id == user2_id) & (ChatRoom.user2_id == user1_id))
+            )
+            .first()
+        )

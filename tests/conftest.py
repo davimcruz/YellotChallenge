@@ -17,7 +17,7 @@ def ignore_warnings():
 
 @pytest.fixture(scope="function")
 async def test_db():
-    # Configuração do banco de dados em memória
+    # Configuração do banco de dados em memória (por conta do CI github actions)
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL,
         connect_args={"check_same_thread": False},
@@ -25,7 +25,7 @@ async def test_db():
     )
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
-    # Criar tabelas
+    # Criar tabelas no startup do teste
     Base.metadata.create_all(bind=engine)
     
     # Override da dependência do banco de dados

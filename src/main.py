@@ -7,7 +7,7 @@ from src.database.models import Base
 
 app = FastAPI(
     title="Chat API",
-    description="API de chat com autenticação JWT",
+    description="Case Challenge para YellotMob - Websocket realtime chat com autenticação JWT",
     version="1.0.0"
 )
 

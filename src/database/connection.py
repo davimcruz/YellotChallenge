@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from urllib.parse import quote_plus
 
-# Carrega as variáveis de ambiente
+# Carrega as env vars
 load_dotenv()
 
 # Verifica se estamos em ambiente de teste pra facilitar o CI

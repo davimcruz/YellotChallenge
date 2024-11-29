@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
 
 class UserCreate(BaseModel):
     username: str
@@ -26,3 +27,15 @@ class Token(BaseModel):
     token_type: str
     
     model_config = ConfigDict(from_attributes=True)
+
+class Message(BaseModel):
+    content: str
+    sender_username: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+    # Formata a data de criação para o padrão brasileiro
+    @property
+    def formatted_date(self):
+        return self.created_at.strftime("%d/%m - %H:%M")

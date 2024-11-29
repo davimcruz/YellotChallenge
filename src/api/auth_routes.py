@@ -5,7 +5,7 @@ from src.domain.schemas import UserCreate, UserResponse, UserLogin, Token
 from src.services.user_service import UserService
 
 router = APIRouter()
-
+# Cria um usuário
 @router.post(
     "/users/", 
     response_model=UserResponse, 

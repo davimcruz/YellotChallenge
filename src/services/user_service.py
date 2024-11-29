@@ -50,6 +50,7 @@ class UserService:
                 detail=f"Erro ao criar usuário: {str(e)}"
             )
     
+    # Autentica de fato o usuário e retorna um token JWT contendo seu id intrisicamente
     @staticmethod
     def authenticate_user(db: Session, login_data: UserLogin) -> Token:
         user = db.query(UserModel).filter(UserModel.email == login_data.email).first()
