@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from src.database.models import ChatRoom, ChatMessage, UserModel
 from src.domain.schemas import ChatRoomCreate
 from src.domain.models import Message
+from datetime import datetime
+from pytz import timezone
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -69,7 +71,8 @@ class ChatService:
             message = ChatMessage(
                 content=content,
                 sender_id=user_id,
-                room_id=room_id
+                room_id=room_id,
+                created_at=datetime.now(timezone('America/Sao_Paulo'))
             )
             
             db.add(message)
@@ -117,7 +120,6 @@ class ChatService:
 
     @staticmethod
     def get_messages_by_room(db: Session, room_id: int):
-        # Retorna todas as mensagens de uma sala, ordenadas pela data de criação
         return db.query(ChatMessage).filter(ChatMessage.room_id == room_id).order_by(ChatMessage.created_at.desc()).all()
 
     @staticmethod

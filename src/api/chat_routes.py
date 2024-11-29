@@ -11,6 +11,7 @@ from typing import List
 from src.domain.models import Message
 from datetime import datetime
 from src.database.models import UserModel
+from pytz import timezone
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -96,7 +97,7 @@ async def websocket_endpoint(
                             "content": chat_message.content,
                             "sender_id": user_id,
                             "room_id": room_id,
-                            "created_at": chat_message.created_at.isoformat(),
+                            "created_at": chat_message.created_at.isoformat() if chat_message.created_at else None,
                             "sender_username": chat_message.sender.username
                         },
                         room_id
@@ -133,9 +134,10 @@ async def get_messages(room_id: int, db: Session = Depends(get_db)):
     response = []
     for message in messages:
         sender = db.query(UserModel).filter(UserModel.id == message.sender_id).first()
+        created_at = message.created_at.astimezone(timezone('America/Sao_Paulo')).isoformat() if message.created_at else None
         response.append({
             "content": message.content,
             "sender_username": sender.username,
-            "created_at": message.created_at
+            "created_at": created_at
         })
     return response

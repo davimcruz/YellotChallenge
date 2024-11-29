@@ -1,11 +1,11 @@
-// Tokens JWT para autenticação dos usuários
+// Tokens JWT para autenticação dos usuários (substitua pelos seus tokens reais (basta fazer login e copiar o token))
 const token1 =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1IiwiZXhwIjoxNzMyODYxMjIyfQ.6Owv9KGqHdyYqfg7bati0r3KQeJM6rXc5SGgU2v16hk"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1IiwiZXhwIjoxNzMyODYyNjIzfQ.XqeZS1p0Npnh3B9vQEGM14nH1fm4F8-yzl0k5Ac_kw0"
 const token2 =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2IiwiZXhwIjoxNzMyODYxMjM4fQ.culigWTr9_oMndVx_lEwH6TTcwmzcLypZ3f-KgYNQxE"
-const roomId = 3 // ID da sala que você deseja usar (deve existir no banco de dados)
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2IiwiZXhwIjoxNzMyODYyMjk5fQ.ry7WEPk9idVWLc1EkOUUgeA0C2jda8E05RGMAlApdxw"
+const roomId = 1 // ID da sala que você deseja usar (deve existir no banco de dados)
 
-// Cria conexões WebSocket para os dois usuários
+// Cria conexões websocket para os dois usuários
 const ws1 = new WebSocket(
   `ws://localhost:8001/api/v1/chat/ws/${roomId}?token=${token1}`
 )
@@ -13,13 +13,13 @@ const ws2 = new WebSocket(
   `ws://localhost:8001/api/v1/chat/ws/${roomId}?token=${token2}`
 )
 
-// Eventos de conexão WebSocket para o usuário 1
+// Eventos de conexão websocket para o usuário 1
 ws1.onopen = () => {
   console.log("Usuário 1 conectado ao WebSocket")
   fetchMessageHistory("chat1") // Busca o histórico de mensagens para o chat 1
 }
 
-// Eventos de conexão WebSocket para o usuário 2
+// Eventos de conexão websocket para o usuário 2
 ws2.onopen = () => {
   console.log("Usuário 2 conectado ao WebSocket")
   fetchMessageHistory("chat2") // Busca o histórico de mensagens para o chat 2
@@ -37,27 +37,27 @@ ws2.onmessage = (event) => {
   displayMessage(event.data, "chat2")
 }
 
-// Tratamento de erros para o WebSocket do usuário 1
+// Tratamento de erros para o websocket do usuário 1
 ws1.onerror = (error) => {
   console.error("Erro no WebSocket Usuário 1:", error)
 }
 
-// Tratamento de erros para o WebSocket do usuário 2
+// Tratamento de erros para o websocket do usuário 2
 ws2.onerror = (error) => {
   console.error("Erro no WebSocket Usuário 2:", error)
 }
 
-// Evento de fechamento da conexão WebSocket para o usuário 1
+// Fechamento da conexão websocket para o usuário 1
 ws1.onclose = () => {
   console.log("Conexão WebSocket Usuário 1 fechada")
 }
 
-// Evento de fechamento da conexão WebSocket para o usuário 2
+// Fechamento da conexão websocket para o usuário 2
 ws2.onclose = () => {
   console.log("Conexão WebSocket Usuário 2 fechada")
 }
 
-// Envia uma mensagem através do WebSocket
+// Envia uma mensagem pelo do websocket
 function sendMessage(ws, inputId) {
   const input = document.getElementById(inputId)
   const message = input.value
@@ -68,17 +68,30 @@ function sendMessage(ws, inputId) {
 }
 
 // Exibe uma mensagem recebida no chat
-function displayMessage(data, chatId) {
+function displayMessage(messageData, chatId) {
   const chat = document.getElementById(chatId)
-  const message = JSON.parse(data)
-  const sender = message.sender_username || message.user_id || "Desconhecido"
-  const content = message.content || "Mensagem não disponível"
-  const time = new Date(message.created_at).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-  chat.innerHTML += `<div class="message"><strong>${sender}:</strong> ${content} <span class="message-time">${time}</span></div>`
-  chat.scrollTop = chat.scrollHeight // Rola para a última mensagem
+  const message = JSON.parse(messageData)
+
+  const messageElement = document.createElement("div")
+  messageElement.classList.add("message")
+
+  const senderElement = document.createElement("strong")
+  senderElement.textContent = message.sender_username + ": "
+  messageElement.appendChild(senderElement)
+
+  const contentElement = document.createElement("span")
+  contentElement.textContent = message.content
+  messageElement.appendChild(contentElement)
+
+  const timeElement = document.createElement("div")
+  timeElement.classList.add("message-time")
+  const messageDate = new Date(message.created_at)
+  const formattedDate = `${messageDate.getDate().toString().padStart(2, '0')}/${(messageDate.getMonth() + 1).toString().padStart(2, '0')} - ${messageDate.getHours().toString().padStart(2, '0')}:${messageDate.getMinutes().toString().padStart(2, '0')}`
+  timeElement.textContent = formattedDate
+  messageElement.appendChild(timeElement)
+
+  chat.appendChild(messageElement)
+  chat.scrollTop = chat.scrollHeight
 }
 
 // Busca o histórico de mensagens de uma sala de chat
@@ -131,7 +144,7 @@ async function login(usernameId, passwordId, tokenVar, user2Id) {
   }
 }
 
-// Conecta ao WebSocket usando o token JWT
+// Conecta ao WebSocket usando o jwt
 function connectWebSocket(roomId, tokenVar) {
   const ws = new WebSocket(
     `ws://localhost:8001/api/v1/chat/ws/${roomId}?token=${window[tokenVar]}`
@@ -195,14 +208,57 @@ function getCookie(name) {
 }
 
 // Executa ao carregar a página
-window.onload = () => {
-  if (token1) {
-    window.token1 = token1
-    connectWebSocket(roomId, "token1")
+window.onload = async () => {
+  let roomId = getCookie("roomId")
+
+  if (!roomId) {
+    // Cria uma nova sala de chat se não existir
+    const user1Id = 5 // ID do usuário 1 (deve existir no banco de dados)
+    const user2Id = 6 // ID do usuário 2 (deve existir no banco de dados)
+
+    roomId = await createChatRoom(user1Id, user2Id)
+    if (roomId) {
+      setCookie("roomId", roomId, 1) // Armazena o ID da sala em um cookie 
+    }
   }
 
-  if (token2) {
-    window.token2 = token2
-    connectWebSocket(roomId, "token2")
+  if (roomId) {
+    if (token1) {
+      window.token1 = token1
+      connectWebSocket(roomId, "token1")
+    }
+
+    if (token2) {
+      window.token2 = token2
+      connectWebSocket(roomId, "token2")
+    }
+  }
+}
+
+// Cria uma nova sala de chat
+async function createChatRoom(user1Id, user2Id) {
+  try {
+    const response = await fetch("http://localhost:8001/api/v1/chat/rooms/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token1}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ user1_id: user1Id, user2_id: user2Id }),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      console.log(`Sala de chat criada: ${data.id}`)
+      return data.id
+    } else if (response.status === 400) {
+      const data = await response.json()
+      console.log(`Sala de chat já existe: ${data.id}`)
+      return data.id
+    } else {
+      console.error("Erro ao criar sala de chat:", response.statusText)
+    }
+  } catch (error) {
+    console.error("Erro ao criar sala de chat:", error)
   }
 }

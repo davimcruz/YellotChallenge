@@ -31,11 +31,11 @@ class Token(BaseModel):
 class Message(BaseModel):
     content: str
     sender_username: str
-    created_at: datetime
+    created_at: Optional[datetime]
 
     model_config = ConfigDict(from_attributes=True)
 
     # Formata a data de criação para o padrão brasileiro
     @property
     def formatted_date(self):
-        return self.created_at.strftime("%d/%m - %H:%M")
+        return self.created_at.strftime("%d/%m/%Y %H:%M:%S") if self.created_at else None
