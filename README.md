@@ -102,6 +102,9 @@ const user2Id = 6 // ID do segundo usuário
 - Se a sala já existir, utilizará a sala existente
 - As mensagens são exibidas em tempo real em ambas as janelas
 
+![gif](https://github.com/user-attachments/assets/2c99abec-8922-4f69-bbd5-02992aa387d8)
+
+
 ## Endpoints da API
 
 ### Autenticação
