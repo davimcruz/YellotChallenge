@@ -22,13 +22,11 @@ class ConnectionManager:
         if room_id in self.active_connections:
             self.active_connections[room_id].pop(user_id, None)
 
-    async def broadcast(self, message: dict, room_id: int, sender_id: int):
-        # Envia uma mensagem para todos os usuários na sala, exceto o remetente (evitar redundancia de mensagens)
-        # Isso é útil para enviar mensagens de chat para todos os participantes de uma sala (o que no futuro pode ser expandido para mais de 2 usuários, tal como grupos)
+    async def broadcast(self, message: dict, room_id: int):
+        # Envia uma mensagem para todos os usuários na sala, incluindo o remetente
         if room_id in self.active_connections:
             for user_id, connection in self.active_connections[room_id].items():
-                if user_id != sender_id:
-                    await connection.send_json(message)
+                await connection.send_json(message)
 
 manager = ConnectionManager()
 

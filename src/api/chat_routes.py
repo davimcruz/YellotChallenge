@@ -89,7 +89,7 @@ async def websocket_endpoint(
                         content=message.get("content", "")
                     )
                     
-                    # Envia a mensagem para todos os usuários na sala, exceto o remetente
+                    # Envia a mensagem para todos os usuários na sala, incluindo o remetente
                     await manager.broadcast(
                         {
                             "id": chat_message.id,
@@ -99,8 +99,7 @@ async def websocket_endpoint(
                             "created_at": chat_message.created_at.isoformat(),
                             "sender_username": chat_message.sender.username
                         },
-                        room_id,
-                        user_id
+                        room_id
                     )
             except Exception as e:
                 logger.error(f"Erro no loop do websocket: {e}")
